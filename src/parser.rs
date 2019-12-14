@@ -1,6 +1,6 @@
 pub fn parse(program: &Vec<u8>) -> Vec<(char, u8)> {
     let mut tokens: Vec<(char, u8)> = Vec::new();
-    let mut t = (' ', 0);
+    let mut t = (program[0] as char, 0);
     let op: Vec<char> = vec![
         '>', '<', '+', '-',
         '.', ',', '[', ']'
@@ -8,7 +8,10 @@ pub fn parse(program: &Vec<u8>) -> Vec<(char, u8)> {
 
     for o in program.iter().map(|x| *x as char) {
         match o {
-            // '['| ']' => tokens.push((o, 1)),
+            '['| ']' if o == t.0 => {
+                tokens.push(t);
+                t = (o, 1);
+            },
             o if o == t.0 => {
                 t.1 += 1;
             },
@@ -21,6 +24,5 @@ pub fn parse(program: &Vec<u8>) -> Vec<(char, u8)> {
     }
     tokens.push(t);
 
-    // println!("{:?}", tokens);
     tokens
 }
