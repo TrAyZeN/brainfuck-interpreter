@@ -1,26 +1,24 @@
 use std::fs::File;
 use std::io;
-use std::io::{BufReader, Read};
+use std::io::Read;
 use std::vec::Vec;
 use std::env;
 use brainfuck_interpreter::interpreter::Interpreter;
 use brainfuck_interpreter::transpiler;
 
-fn main() -> io::Result<()> {
+fn main() -> Result<(), &'static str> {
     let args: Vec<String> = env::args().collect();
 
     if args.len() < 2 {
-        println!("No file to interpret, use -h flag for more information");
-        std::process::exit(1);
+        return Err("No file to interpret, use -h flag for more information");
     }
     else if args.len() < 3 {
-        println!("No argument provided, use -h flag for more information");
-        std::process::exit(1);
+        return Err("No argument provided, use -h flag for more information");
     }
     else if args.contains(&String::from("-h"))
          || args.contains(&String::from("--help")) {
         display_help();
-        std::process::exit(0);
+        return Ok(());
     }
 
     let buffer = read_input_file(&args[1]).unwrap();
@@ -28,28 +26,29 @@ fn main() -> io::Result<()> {
     if (args.contains(&String::from("-t"))
     || args.contains(&String::from("--transpile")))
     && args.len() < 5 {
-        println!("Not enough arguments provided to transpile, use -h flag for more information");
-        std::process::exit(1);
+        return Err("Not enough arguments provided to transpile, use -h flag for more information");
     }
     else if args.contains(&String::from("-t"))
     || args.contains(&String::from("--transpile")) {
         match &*args[3] {
-            "rs" | "rust" => transpiler::to_rust(buffer, &args[4])?,
-            "c" | "clang" => transpiler::to_c(buffer, &args[4])?,
+            "rs" | "rust" => {
+                transpiler::to_rust(&buffer[..], &args[4]);
+            },
+            "c" | "clang" => {
+                transpiler::to_c(&buffer[..], &args[4]);
+            },
             _ => {
-                println!("Unknown language, use -h flag for more information");
-                std::process::exit(1);
+                return Err("Unknown language, use -h flag for more information");
             },
         }
     }
     else if args.contains(&String::from("-i"))
     || args.contains(&String::from("--interpret")) {
         let mut interpreter = Interpreter::new(6000);
-        interpreter.run(buffer);
+        interpreter.run(&buffer[..]);
     }
     else {
-        println!("Unknown argument, use -h for more information");
-        std::process::exit(1);
+        return Err("Unknown argument, use -h for more information");
     }
 
     Ok(())
@@ -69,17 +68,9 @@ Arguments:
 }
 
 fn read_input_file(filename: &str) -> io::Result<Vec<u8>> {
-    let file = match File::open(filename) {
-        Ok(f) => f,
-        Err(e) => {
-            println!("Failed to open file : Error {:?}", e.kind());
-            std::process::exit(1);
-        },
-    };
-
-    let mut file_reader = BufReader::new(file);
+    let mut file = File::open(filename)?;
     let mut buffer = Vec::new();
-    file_reader.read_to_end(&mut buffer)?;
+    file.read_to_end(&mut buffer)?;
 
     Ok(buffer)
 }

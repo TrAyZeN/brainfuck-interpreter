@@ -16,7 +16,7 @@ impl Interpreter {
         }
     }
 
-    pub fn run(&mut self, program: Vec<u8>) {
+    pub fn run(&mut self, program: &[u8]) {
         let mut i = 0;
 
         let tokens = parser::parse(&program);
@@ -24,14 +24,14 @@ impl Interpreter {
 
         while i < tokens.len() {
             match tokens[i].0 {
-                '>' => self.increment_pointer(tokens[i].1 as usize),
-                '<' => self.decrement_pointer(tokens[i].1 as usize),
-                '+' => self.increment_memory(tokens[i].1),
-                '-' => self.decrement_memory(tokens[i].1),
-                '.' => self.print_char(tokens[i].1),
-                ',' => self.read_char(tokens[i].1),
-                '[' => self.open_loop(&mut i, &tokens),
-                ']' => self.close_loop(&mut i),
+                b'>' => self.increment_pointer(tokens[i].1 as usize),
+                b'<' => self.decrement_pointer(tokens[i].1 as usize),
+                b'+' => self.increment_memory(tokens[i].1),
+                b'-' => self.decrement_memory(tokens[i].1),
+                b'.' => self.print_char(tokens[i].1),
+                b',' => self.read_char(tokens[i].1),
+                b'[' => self.open_loop(&mut i, &tokens),
+                b']' => self.close_loop(&mut i),
                  _  => (),
             }
 
@@ -65,7 +65,7 @@ impl Interpreter {
 
     }
 
-    fn open_loop(&mut self, i: &mut usize, tokens: &Vec<(char, u8)>) {
+    fn open_loop(&mut self, i: &mut usize, tokens: &Vec<(u8, u8)>) {
         if self.memory[self.ptr] == 0 {
             self.jump_loop_end(i, tokens);
         }
@@ -88,26 +88,26 @@ impl Interpreter {
         *i = *self.loop_stack.last().unwrap();
     }
 
-    fn jump_loop_end(&mut self, i: &mut usize, tokens: &Vec<(char, u8)>) {
+    fn jump_loop_end(&mut self, i: &mut usize, tokens: &Vec<(u8, u8)>) {
         let mut c = 1;
         while c > 0 {
             *i += 1;
             match tokens[*i].0 {
-                '[' => c += 1,
-                ']' => c -= 1,
+                b'[' => c += 1,
+                b']' => c -= 1,
                 _ => (),
             }
         }
     }
 
-    fn map_program(tokens: &Vec<(char, u8)>) -> HashMap<usize, usize> {
+    fn map_program(tokens: &Vec<(u8, u8)>) -> HashMap<usize, usize> {
         let mut loop_stack = Vec::new();
         let mut loop_map = HashMap::new();
 
         for (k, (o, _)) in tokens.iter().enumerate() {
             match o {
-                '[' => loop_stack.push(k),
-                ']' if loop_stack.last().is_some() => {
+                b'[' => loop_stack.push(k),
+                b']' if loop_stack.last().is_some() => {
                     loop_map.insert(loop_stack.pop().unwrap(), k);
                 },
                 _ => ()
