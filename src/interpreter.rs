@@ -39,29 +39,29 @@ impl Interpreter {
         }
     }
 
-    fn increment_pointer(&mut self, v: usize) {
-        self.ptr += v;
+    fn increment_pointer(&mut self, count: usize) {
+        self.ptr += count;
     }
 
-    fn decrement_pointer(&mut self, v: usize) {
-        self.ptr -= v;
+    fn decrement_pointer(&mut self, count: usize) {
+        self.ptr -= count;
     }
 
-    fn increment_memory(&mut self, v: u8) {
-        self.memory[self.ptr] = self.memory[self.ptr].overflowing_add(v).0;
+    fn increment_memory(&mut self, count: u8) {
+        self.memory[self.ptr] = self.memory[self.ptr].overflowing_add(count).0;
     }
 
-    fn decrement_memory(&mut self, v: u8) {
-        self.memory[self.ptr] = self.memory[self.ptr].overflowing_sub(v).0;
+    fn decrement_memory(&mut self, count: u8) {
+        self.memory[self.ptr] = self.memory[self.ptr].overflowing_sub(count).0;
     }
 
-    fn print_char(&mut self, v: u8) {
-        for _ in 0..v {
+    fn print_char(&mut self, count: u8) {
+        for _ in 0..count {
             print!("{}", self.memory[self.ptr] as char);
         }
     }
 
-    fn read_char(&mut self, v: u8) {    // TODO: implement read_char
+    fn read_char(&mut self, count: u8) {    // TODO: implement read_char
 
     }
 
@@ -89,12 +89,12 @@ impl Interpreter {
     }
 
     fn jump_loop_end(&mut self, i: &mut usize, tokens: &Vec<(u8, u8)>) {
-        let mut c = 1;
-        while c > 0 {
+        let mut counter = 1;
+        while counter > 0 {
             *i += 1;
             match tokens[*i].0 {
-                b'[' => c += 1,
-                b']' => c -= 1,
+                b'[' => counter += 1,
+                b']' => counter -= 1,
                 _ => (),
             }
         }
@@ -104,8 +104,8 @@ impl Interpreter {
         let mut loop_stack = Vec::new();
         let mut loop_map = HashMap::new();
 
-        for (k, (o, _)) in tokens.iter().enumerate() {
-            match o {
+        for (k, (operation, _)) in tokens.iter().enumerate() {
+            match operation {
                 b'[' => loop_stack.push(k),
                 b']' if loop_stack.last().is_some() => {
                     loop_map.insert(loop_stack.pop().unwrap(), k);
