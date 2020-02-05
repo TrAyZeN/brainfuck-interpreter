@@ -12,9 +12,6 @@ fn main() -> Result<(), &'static str> {
     if args.len() < 2 {
         return Err("No file to interpret, use -h flag for more information");
     }
-    else if args.len() < 3 {
-        return Err("No argument provided, use -h flag for more information");
-    }
     else if args.contains(&String::from("-h"))
          || args.contains(&String::from("--help")) {
         display_help();
